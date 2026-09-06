@@ -39,6 +39,7 @@ sliderFrame.Position = UDim2.new(1, -260, 0.73, 0)
 sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 sliderFrame.BackgroundTransparency = 0.1
 sliderFrame.Visible = false
+sliderFrame.Active = true
 sliderFrame.Parent = gui
 
 local sliderCorner = Instance.new("UICorner")
@@ -66,6 +67,7 @@ sliderBar.Size = UDim2.new(1, -30, 0, 8)
 sliderBar.Position = UDim2.new(0, 15, 0, 43)
 sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
 sliderBar.BorderSizePixel = 0
+sliderBar.Active = true
 sliderBar.Parent = sliderFrame
 
 local barCorner = Instance.new("UICorner")
@@ -79,6 +81,7 @@ knob.Position = UDim2.new(0.294, -11, 0.5, -11)
 knob.BackgroundColor3 = Color3.new(1, 1, 1)
 knob.Text = ""
 knob.BorderSizePixel = 0
+knob.Active = true
 knob.Parent = sliderBar
 
 local knobCorner = Instance.new("UICorner")
@@ -86,16 +89,13 @@ knobCorner.CornerRadius = UDim.new(1, 0)
 knobCorner.Parent = knob
 
 -- CAMERA MODES
--- 1 = FREELOOK
--- 2 = THIRD PERSON
--- 3 = FIRST PERSON
-
 local mode = 1
 
 local MIN_DISTANCE = 3
 local MAX_DISTANCE = 20
 local distance = 8
 
+-- CHARACTER
 local function getHumanoid()
 	local character = player.Character
 
@@ -106,7 +106,7 @@ local function getHumanoid()
 	return character:FindFirstChildOfClass("Humanoid")
 end
 
--- CHARACTER TRANSPARENCY
+-- LOCAL ONLY TRANSPARENCY
 local function setTransparency(value)
 	local character = player.Character
 
@@ -123,7 +123,7 @@ local function setTransparency(value)
 	end
 end
 
--- CAMERA UPDATE
+-- CAMERA
 local function updateCamera()
 	local humanoid = getHumanoid()
 
@@ -141,7 +141,7 @@ local function updateCamera()
 	camera.CameraSubject = humanoid
 
 	if mode == 1 then
-		-- FREELOOK
+
 		player.CameraMode = Enum.CameraMode.Classic
 		player.CameraMinZoomDistance = 0.5
 		player.CameraMaxZoomDistance = 128
@@ -152,18 +152,19 @@ local function updateCamera()
 		button.Text = "FREELOOK"
 
 	elseif mode == 2 then
-		-- LOCKED THIRD PERSON
+
 		player.CameraMode = Enum.CameraMode.Classic
 		player.CameraMinZoomDistance = distance
 		player.CameraMaxZoomDistance = distance
 
+		-- Nur für dich sichtbar
 		setTransparency(0.35)
 
 		sliderFrame.Visible = true
 		button.Text = "THIRD PERSON"
 
 	elseif mode == 3 then
-		-- LOCKED FIRST PERSON
+
 		player.CameraMode = Enum.CameraMode.LockFirstPerson
 		player.CameraMinZoomDistance = 0.5
 		player.CameraMaxZoomDistance = 0.5
@@ -186,7 +187,7 @@ button.Activated:Connect(function()
 	updateCamera()
 end)
 
--- SLIDER FUNCTION
+-- SLIDER
 local function setSlider(positionX)
 	local startX = sliderBar.AbsolutePosition.X
 	local width = sliderBar.AbsoluteSize.X
@@ -216,7 +217,6 @@ local function setSlider(positionX)
 	end
 end
 
--- SLIDER DRAGGING
 local sliderDragging = false
 
 local function beginSlider(input)
@@ -251,7 +251,54 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
--- CHARACTER RESPAWN
+-- DRAGGABLE UI
+local function makeDraggable(object)
+	local dragging = false
+	local dragStart
+	local startPosition
+
+	object.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			dragging = true
+			dragStart = input.Position
+			startPosition = object.Position
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if not dragging then
+			return
+		end
+
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			local delta = input.Position - dragStart
+
+			object.Position = UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+
+			dragging = false
+		end
+	end)
+end
+
+makeDraggable(button)
+makeDraggable(sliderFrame)
+
+-- RESPAWN
 player.CharacterAdded:Connect(function()
 	task.wait(1)
 	updateCamera()
