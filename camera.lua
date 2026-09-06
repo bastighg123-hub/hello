@@ -305,5 +305,3 @@ updateCamera()
 end)
 
 updateCamera()
-
-Third Person
