@@ -1,17 +1,17 @@
-local Players = game:GetService(“Players”)
-local UserInputService = game:GetService(“UserInputService”)
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
-– GUI
-local gui = Instance.new(“ScreenGui”)
-gui.Name = “CameraUI”
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "CameraUI"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
-gui.Parent = player:WaitForChild(“PlayerGui”)
+gui.Parent = player:WaitForChild("PlayerGui")
 
-– CAMERA BUTTON
-local button = Instance.new(“TextButton”)
+-- CAMERA BUTTON
+local button = Instance.new("TextButton")
 button.Size = UDim2.fromOffset(170, 60)
 button.Position = UDim2.new(1, -190, 0.62, 0)
 button.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -19,21 +19,21 @@ button.BackgroundTransparency = 0.1
 button.TextColor3 = Color3.new(1, 1, 1)
 button.TextSize = 17
 button.Font = Enum.Font.GothamBold
-button.Text = “FREELOOK”
+button.Text = "FREELOOK"
 button.Active = true
 button.Parent = gui
 
-local buttonCorner = Instance.new(“UICorner”)
+local buttonCorner = Instance.new("UICorner")
 buttonCorner.CornerRadius = UDim.new(0, 16)
 buttonCorner.Parent = button
 
-local buttonStroke = Instance.new(“UIStroke”)
+local buttonStroke = Instance.new("UIStroke")
 buttonStroke.Thickness = 2
 buttonStroke.Transparency = 0.2
 buttonStroke.Parent = button
 
-– SLIDER FRAME
-local sliderFrame = Instance.new(“Frame”)
+-- SLIDER FRAME
+local sliderFrame = Instance.new("Frame")
 sliderFrame.Size = UDim2.fromOffset(240, 65)
 sliderFrame.Position = UDim2.new(1, -260, 0.73, 0)
 sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -41,54 +41,54 @@ sliderFrame.BackgroundTransparency = 0.1
 sliderFrame.Visible = false
 sliderFrame.Parent = gui
 
-local sliderCorner = Instance.new(“UICorner”)
+local sliderCorner = Instance.new("UICorner")
 sliderCorner.CornerRadius = UDim.new(0, 16)
 sliderCorner.Parent = sliderFrame
 
-local sliderStroke = Instance.new(“UIStroke”)
+local sliderStroke = Instance.new("UIStroke")
 sliderStroke.Thickness = 2
 sliderStroke.Transparency = 0.2
 sliderStroke.Parent = sliderFrame
 
-– SLIDER TEXT
-local sliderText = Instance.new(“TextLabel”)
+-- SLIDER TEXT
+local sliderText = Instance.new("TextLabel")
 sliderText.Size = UDim2.new(1, 0, 0, 25)
 sliderText.BackgroundTransparency = 1
 sliderText.TextColor3 = Color3.new(1, 1, 1)
 sliderText.TextSize = 15
 sliderText.Font = Enum.Font.GothamBold
-sliderText.Text = “Camera Distance: 8”
+sliderText.Text = "Camera Distance: 8"
 sliderText.Parent = sliderFrame
 
-– SLIDER BAR
-local sliderBar = Instance.new(“Frame”)
+-- SLIDER BAR
+local sliderBar = Instance.new("Frame")
 sliderBar.Size = UDim2.new(1, -30, 0, 8)
 sliderBar.Position = UDim2.new(0, 15, 0, 43)
 sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 75)
 sliderBar.BorderSizePixel = 0
 sliderBar.Parent = sliderFrame
 
-local barCorner = Instance.new(“UICorner”)
+local barCorner = Instance.new("UICorner")
 barCorner.CornerRadius = UDim.new(1, 0)
 barCorner.Parent = sliderBar
 
-– SLIDER KNOB
-local knob = Instance.new(“TextButton”)
+-- SLIDER KNOB
+local knob = Instance.new("TextButton")
 knob.Size = UDim2.fromOffset(22, 22)
 knob.Position = UDim2.new(0.294, -11, 0.5, -11)
 knob.BackgroundColor3 = Color3.new(1, 1, 1)
-knob.Text = “”
+knob.Text = ""
 knob.BorderSizePixel = 0
 knob.Parent = sliderBar
 
-local knobCorner = Instance.new(“UICorner”)
+local knobCorner = Instance.new("UICorner")
 knobCorner.CornerRadius = UDim.new(1, 0)
 knobCorner.Parent = knob
 
-– CAMERA MODES
-– 1 = FREELOOK
-– 2 = THIRD PERSON
-– 3 = FIRST PERSON
+-- CAMERA MODES
+-- 1 = FREELOOK
+-- 2 = THIRD PERSON
+-- 3 = FIRST PERSON
 
 local mode = 1
 
@@ -97,156 +97,164 @@ local MAX_DISTANCE = 20
 local distance = 8
 
 local function getHumanoid()
-local character = player.Character
+	local character = player.Character
 
-if not character then
-	return nil
+	if not character then
+		return nil
+	end
+
+	return character:FindFirstChildOfClass("Humanoid")
 end
-return character:FindFirstChildOfClass("Humanoid")
 
-end
-
-– CHARACTER TRANSPARENCY
+-- CHARACTER TRANSPARENCY
 local function setTransparency(value)
+	local character = player.Character
 
-local character = player.Character
-if not character then
-	return
-end
-for _, object in ipairs(character:GetDescendants()) do
-	if object:IsA("BasePart") then
-		object.LocalTransparencyModifier = value
-	elseif object:IsA("Decal") then
-		object.LocalTransparencyModifier = value
+	if not character then
+		return
+	end
+
+	for _, object in ipairs(character:GetDescendants()) do
+		if object:IsA("BasePart") then
+			object.LocalTransparencyModifier = value
+		elseif object:IsA("Decal") then
+			object.LocalTransparencyModifier = value
+		end
 	end
 end
 
-end
-
-– CAMERA UPDATE
+-- CAMERA UPDATE
 local function updateCamera()
+	local humanoid = getHumanoid()
 
-local humanoid = getHumanoid()
-if not humanoid then
-	return
-end
-local camera = workspace.CurrentCamera
-if not camera then
-	return
-end
-camera.CameraType = Enum.CameraType.Custom
-camera.CameraSubject = humanoid
-if mode == 1 then
-	-- FREELOOK
-	player.CameraMode = Enum.CameraMode.Classic
-	player.CameraMinZoomDistance = 0.5
-	player.CameraMaxZoomDistance = 128
-	setTransparency(0)
-	sliderFrame.Visible = false
-	button.Text = "FREELOOK"
-elseif mode == 2 then
-	-- LOCKED THIRD PERSON
-	player.CameraMode = Enum.CameraMode.Classic
-	player.CameraMinZoomDistance = distance
-	player.CameraMaxZoomDistance = distance
-	setTransparency(0.35)
-	sliderFrame.Visible = true
-	button.Text = "THIRD PERSON"
-elseif mode == 3 then
-	-- LOCKED FIRST PERSON
-	player.CameraMode = Enum.CameraMode.LockFirstPerson
-	player.CameraMinZoomDistance = 0.5
-	player.CameraMaxZoomDistance = 0.5
-	setTransparency(0)
-	sliderFrame.Visible = false
-	button.Text = "FIRST PERSON"
+	if not humanoid then
+		return
+	end
+
+	local camera = workspace.CurrentCamera
+
+	if not camera then
+		return
+	end
+
+	camera.CameraType = Enum.CameraType.Custom
+	camera.CameraSubject = humanoid
+
+	if mode == 1 then
+		-- FREELOOK
+		player.CameraMode = Enum.CameraMode.Classic
+		player.CameraMinZoomDistance = 0.5
+		player.CameraMaxZoomDistance = 128
+
+		setTransparency(0)
+
+		sliderFrame.Visible = false
+		button.Text = "FREELOOK"
+
+	elseif mode == 2 then
+		-- LOCKED THIRD PERSON
+		player.CameraMode = Enum.CameraMode.Classic
+		player.CameraMinZoomDistance = distance
+		player.CameraMaxZoomDistance = distance
+
+		setTransparency(0.35)
+
+		sliderFrame.Visible = true
+		button.Text = "THIRD PERSON"
+
+	elseif mode == 3 then
+		-- LOCKED FIRST PERSON
+		player.CameraMode = Enum.CameraMode.LockFirstPerson
+		player.CameraMinZoomDistance = 0.5
+		player.CameraMaxZoomDistance = 0.5
+
+		setTransparency(0)
+
+		sliderFrame.Visible = false
+		button.Text = "FIRST PERSON"
+	end
 end
 
-end
-
-– CHANGE MODE
+-- CHANGE MODE
 button.Activated:Connect(function()
+	mode = mode + 1
 
-mode = mode + 1
-if mode > 3 then
-	mode = 1
-end
-updateCamera()
+	if mode > 3 then
+		mode = 1
+	end
 
+	updateCamera()
 end)
 
-– SLIDER FUNCTION
+-- SLIDER FUNCTION
 local function setSlider(positionX)
+	local startX = sliderBar.AbsolutePosition.X
+	local width = sliderBar.AbsoluteSize.X
 
-local startX = sliderBar.AbsolutePosition.X
-local width = sliderBar.AbsoluteSize.X
-local percent = (positionX - startX) / width
-percent = math.clamp(percent, 0, 1)
-distance = MIN_DISTANCE + ((MAX_DISTANCE - MIN_DISTANCE) * percent)
-distance = math.round(distance)
-knob.Position = UDim2.new(
-	percent,
-	-11,
-	0.5,
-	-11
-)
-sliderText.Text = "Camera Distance: " .. distance
-if mode == 2 then
-	player.CameraMinZoomDistance = distance
-	player.CameraMaxZoomDistance = distance
+	if width <= 0 then
+		return
+	end
+
+	local percent = (positionX - startX) / width
+	percent = math.clamp(percent, 0, 1)
+
+	distance = MIN_DISTANCE + ((MAX_DISTANCE - MIN_DISTANCE) * percent)
+	distance = math.round(distance)
+
+	knob.Position = UDim2.new(
+		percent,
+		-11,
+		0.5,
+		-11
+	)
+
+	sliderText.Text = "Camera Distance: " .. distance
+
+	if mode == 2 then
+		player.CameraMinZoomDistance = distance
+		player.CameraMaxZoomDistance = distance
+	end
 end
 
-end
-
-– SLIDER TOUCH
+-- SLIDER DRAGGING
 local sliderDragging = false
 
-knob.InputBegan:Connect(function(input)
+local function beginSlider(input)
+	if input.UserInputType == Enum.UserInputType.Touch
+		or input.UserInputType == Enum.UserInputType.MouseButton1 then
 
-if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseButton1 then
-	sliderDragging = true
+		sliderDragging = true
+		setSlider(input.Position.X)
+	end
 end
 
-end)
-
-sliderBar.InputBegan:Connect(function(input)
-
-if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseButton1 then
-	sliderDragging = true
-	setSlider(input.Position.X)
-end
-
-end)
+knob.InputBegan:Connect(beginSlider)
+sliderBar.InputBegan:Connect(beginSlider)
 
 UserInputService.InputChanged:Connect(function(input)
+	if not sliderDragging then
+		return
+	end
 
-if not sliderDragging then
-	return
-end
-if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseMovement then
-	setSlider(input.Position.X)
-end
+	if input.UserInputType == Enum.UserInputType.Touch
+		or input.UserInputType == Enum.UserInputType.MouseMovement then
 
+		setSlider(input.Position.X)
+	end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch
+		or input.UserInputType == Enum.UserInputType.MouseButton1 then
 
-if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseButton1 then
-	sliderDragging = false
-end
-
+		sliderDragging = false
+	end
 end)
 
-– CHARACTER RESPAWN
+-- CHARACTER RESPAWN
 player.CharacterAdded:Connect(function()
-
-task.wait(1)
-updateCamera()
-
+	task.wait(1)
+	updateCamera()
 end)
 
 updateCamera()
